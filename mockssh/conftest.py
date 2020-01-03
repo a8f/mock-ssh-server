@@ -14,6 +14,8 @@ __all__ = [
 
 
 SAMPLE_USER_KEY = os.path.join(os.path.dirname(__file__), "sample-user-key")
+CUSTOM_PORT = 2222
+CUSTOM_HOST = "localhost"
 
 
 @fixture
@@ -27,6 +29,46 @@ def server():
         "sample-user": SAMPLE_USER_KEY,
     }
     with Server(users) as s:
+        yield s
+
+
+@yield_fixture(scope="function")
+def password_server():
+    users = {
+        "user1": "password1",
+        "user2": "password2"
+    }
+    with Server(users, auth="password") as s:
+        yield s
+
+
+@yield_fixture(scope="function")
+def mixed_server():
+    users = {
+        "key-user": ("key", SAMPLE_USER_KEY),
+        "password-user": ("password", "password1")
+    }
+    with Server(users, auth="mixed") as s:
+        yield s
+
+
+@yield_fixture(scope="function")
+def auto_server():
+    users = {
+        "key-user": SAMPLE_USER_KEY,
+        "password-user": "password1",
+        "password-like-key-user": os.path.join(tempfile.gettempdir(), "not", "real")
+    }
+    with Server(users, auth="auto") as s:
+        yield s
+
+
+@yield_fixture(scope="function")
+def custom_server():
+    users = {
+        "sample-user": SAMPLE_USER_KEY,
+    }
+    with Server(users, host=CUSTOM_HOST, port=CUSTOM_PORT) as s:
         yield s
 
 
